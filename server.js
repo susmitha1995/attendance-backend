@@ -1,6 +1,7 @@
 const express = require("express");
 const mysql = require("mysql2");
 const bodyParser = require("body-parser");
+const bcrypt = require("bcrypt");
 
 const app = express();
 
@@ -49,6 +50,71 @@ app.post("/mark-attendance", (req, res) => {
 
     res.json({ status: "success", message: "Attendance recorded" });
   });
+});
+
+// Signup endpoint
+app.post("/signup", async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ status: "error", message: "Username and password are required" });
+  }
+
+  try {
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Insert user into the database
+    const query = "INSERT INTO users (username, password) VALUES (?, ?)";
+    db.query(query, [username, hashedPassword], (err, result) => {
+      if (err) {
+        console.error("Error inserting into database:", err);
+        return res.status(500).json({ status: "error", message: "Database error" });
+      }
+
+      res.json({ status: "success", message: "User registered successfully" });
+    });
+  } catch (error) {
+    console.error("Error hashing password:", error);
+    res.status(500).json({ status: "error", message: "Internal server error" });
+  }
+});
+
+// Login endpoint
+app.post("/login", async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ status: "error", message: "Username and password are required" });
+  }
+
+  try {
+    // Fetch user from the database
+    const query = "SELECT * FROM users WHERE username = ?";
+    db.query(query, [username], async (err, result) => {
+      if (err) {
+        console.error("Error querying database:", err);
+        return res.status(500).json({ status: "error", message: "Database error" });
+      }
+
+      if (result.length === 0) {
+        return res.status(401).json({ status: "error", message: "Invalid username or password" });
+      }
+
+      // Compare passwords
+      const user = result[0];
+      const passwordMatch = await bcrypt.compare(password, user.password);
+
+      if (!passwordMatch) {
+        return res.status(401).json({ status: "error", message: "Invalid username or password" });
+      }
+
+      res.json({ status: "success", message: "Login successful" });
+    });
+  } catch (error) {
+    console.error("Error comparing passwords:", error);
+    res.status(500).json({ status: "error", message: "Internal server error" });
+  }
 });
 
 // Start the server
