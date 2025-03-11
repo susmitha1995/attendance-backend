@@ -8,7 +8,7 @@ const app = express();
 
 // Enable CORS
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "http://127.0.0.1:5500"); // Allow requests from this origin
+  res.header("Access-Control-Allow-Origin", "*"); // Allow requests from any origin (update this in production)
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS"); // Allow these methods
   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization"); // Allow these headers
   next();
@@ -16,12 +16,13 @@ app.use((req, res, next) => {
 
 app.use(bodyParser.json());
 
-// MySQL connection
+// MySQL connection using environment variables
 const db = mysql.createConnection({
-  host: "localhost",
-  user: "root", // Replace with your MySQL username
-  password: "Sus$2121", // Replace with your MySQL password
-  database: "attendance_db",
+  host: process.env.DB_HOST || "localhost", // Use environment variable or fallback to localhost
+  user: process.env.DB_USER || "root", // Use environment variable or fallback to root
+  password: process.env.DB_PASSWORD || "Sus$2121", // Use environment variable or fallback
+  database: process.env.DB_NAME || "attendance_db", // Use environment variable or fallback
+  port: process.env.DB_PORT || 3306, // Use environment variable or fallback to default MySQL port
 });
 
 db.connect((err) => {
@@ -33,7 +34,7 @@ db.connect((err) => {
 });
 
 // Secret key for JWT (keep this secure in production)
-const JWT_SECRET = "your-secret-key";
+const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
 // Middleware to verify JWT token
 const authenticateUser = (req, res, next) => {
@@ -143,7 +144,7 @@ app.post("/mark-attendance", authenticateUser, (req, res) => {
 });
 
 // Start the server
-const PORT = 3000;
+const PORT = process.env.PORT || 3000; // Use environment variable or fallback to 3000
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
