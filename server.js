@@ -2,6 +2,7 @@ const express = require("express");
 const mysql = require("mysql2");
 const bodyParser = require("body-parser");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 const app = express();
 
@@ -31,26 +32,25 @@ db.connect((err) => {
   console.log("Connected to MySQL database");
 });
 
-// API to mark attendance
-app.post("/mark-attendance", (req, res) => {
-  const { name } = req.body;
+// Secret key for JWT (keep this secure in production)
+const JWT_SECRET = "your-secret-key";
 
-  if (!name) {
-    return res.status(400).json({ status: "error", message: "Name is required" });
+// Middleware to verify JWT token
+const authenticateUser = (req, res, next) => {
+  const token = req.headers.authorization;
+
+  if (!token) {
+    return res.status(401).json({ status: "error", message: "Access denied. No token provided." });
   }
 
-  const date = new Date().toISOString().split("T")[0]; // Get current date in YYYY-MM-DD format
-
-  const query = "INSERT INTO attendance (name, date) VALUES (?, ?)";
-  db.query(query, [name, date], (err, result) => {
-    if (err) {
-      console.error("Error inserting into database:", err);
-      return res.status(500).json({ status: "error", message: "Database error" });
-    }
-
-    res.json({ status: "success", message: "Attendance recorded" });
-  });
-});
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded; // Attach user data to the request
+    next();
+  } catch (error) {
+    return res.status(401).json({ status: "error", message: "Invalid token." });
+  }
+};
 
 // Signup endpoint
 app.post("/signup", async (req, res) => {
@@ -109,12 +109,37 @@ app.post("/login", async (req, res) => {
         return res.status(401).json({ status: "error", message: "Invalid username or password" });
       }
 
-      res.json({ status: "success", message: "Login successful" });
+      // Generate a JWT token
+      const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: "1h" });
+
+      // Return the token in the response
+      res.json({ status: "success", message: "Login successful", token });
     });
   } catch (error) {
     console.error("Error comparing passwords:", error);
     res.status(500).json({ status: "error", message: "Internal server error" });
   }
+});
+
+// Protected endpoint to mark attendance
+app.post("/mark-attendance", authenticateUser, (req, res) => {
+  const { name } = req.body;
+
+  if (!name) {
+    return res.status(400).json({ status: "error", message: "Name is required" });
+  }
+
+  const date = new Date().toISOString().split("T")[0]; // Get current date in YYYY-MM-DD format
+
+  const query = "INSERT INTO attendance (name, date) VALUES (?, ?)";
+  db.query(query, [name, date], (err, result) => {
+    if (err) {
+      console.error("Error inserting into database:", err);
+      return res.status(500).json({ status: "error", message: "Database error" });
+    }
+
+    res.json({ status: "success", message: "Attendance recorded" });
+  });
 });
 
 // Start the server
