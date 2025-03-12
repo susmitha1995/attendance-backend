@@ -132,7 +132,6 @@ app.post("/login", async (req, res) => {
 // Protected endpoint to mark attendance
 app.post("/mark-attendance", authenticateUser, (req, res) => {
   const { name } = req.body;
-
   if (!name) {
     return res.status(400).json({ status: "error", message: "Name is required" });
   }
@@ -142,13 +141,15 @@ app.post("/mark-attendance", authenticateUser, (req, res) => {
   const query = "INSERT INTO attendance (name, date) VALUES (?, ?)";
   db.query(query, [name, date], (err, result) => {
     if (err) {
-      console.error("Error inserting into database:", err);
-      return res.status(500).json({ status: "error", message: "Database error" });
+      console.error("❌ Error inserting into database:", err); // Log the error in console
+      return res.status(500).json({ status: "error", message: "Database error", error: err.message });
     }
 
+    console.log("✅ Attendance recorded successfully:", result);
     res.json({ status: "success", message: "Attendance recorded" });
   });
 });
+
 
 // Start the server
 const PORT = process.env.PORT || 3000; // Use environment variable or fallback to 3000
