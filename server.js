@@ -135,6 +135,7 @@ app.post("/mark-attendance", authenticateUser, (req, res) => {
   if (!name) {
     return res.status(400).json({ status: "error", message: "Name is required" });
   }
+  //
 
   const date = new Date().toISOString().split("T")[0]; // Get current date in YYYY-MM-DD format
 
