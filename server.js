@@ -27,10 +27,16 @@ const db = mysql.createConnection({
 
 db.connect((err) => {
   if (err) {
-    console.error("Error connecting to MySQL:", err);
+    console.error("❌ Error connecting to MySQL:", err);
+    console.error("Connection Details:", {
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      database: process.env.DB_NAME,
+      port: process.env.DB_PORT,
+    });
     return;
   }
-  console.log("Connected to MySQL database");
+  console.log("✅ Connected to MySQL database");
 });
 
 // Secret key for JWT (keep this secure in production)
@@ -58,7 +64,6 @@ const authenticateUser = (req, res, next) => {
     return res.status(401).json({ status: "error", message: "Invalid token." });
   }
 };
-
 
 // Signup endpoint
 app.post("/signup", async (req, res) => {
@@ -135,7 +140,6 @@ app.post("/mark-attendance", authenticateUser, (req, res) => {
   if (!name) {
     return res.status(400).json({ status: "error", message: "Name is required" });
   }
-  
 
   const date = new Date().toISOString().split("T")[0]; // Get current date in YYYY-MM-DD format
 
@@ -150,7 +154,6 @@ app.post("/mark-attendance", authenticateUser, (req, res) => {
     res.json({ status: "success", message: "Attendance recorded" });
   });
 });
-
 
 // Start the server
 const PORT = process.env.PORT || 3000; // Use environment variable or fallback to 3000
