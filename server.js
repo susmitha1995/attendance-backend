@@ -38,10 +38,15 @@ const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
 // Middleware to verify JWT token
 const authenticateUser = (req, res, next) => {
-  const token = req.headers.authorization;
+  let token = req.headers.authorization;
 
   if (!token) {
     return res.status(401).json({ status: "error", message: "Access denied. No token provided." });
+  }
+
+  // Remove "Bearer " prefix if present
+  if (token.startsWith("Bearer ")) {
+    token = token.slice(7, token.length); // Remove "Bearer " (7 characters)
   }
 
   try {
@@ -49,9 +54,11 @@ const authenticateUser = (req, res, next) => {
     req.user = decoded; // Attach user data to the request
     next();
   } catch (error) {
+    console.error("JWT Verification Error:", error);
     return res.status(401).json({ status: "error", message: "Invalid token." });
   }
 };
+
 
 // Signup endpoint
 app.post("/signup", async (req, res) => {
