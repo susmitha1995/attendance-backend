@@ -16,37 +16,31 @@ app.use((req, res, next) => {
 
 app.use(bodyParser.json());
 
-// MySQL connection configuration
-let dbConfig;
-if (process.env.MYSQL_URL) {
-  // Use MYSQL_URL if provided (for Railway)
-  dbConfig = process.env.MYSQL_URL;
-} else {
-  // Use individual environment variables (for local development)
-  dbConfig = {
-    host: process.env.DB_HOST || "localhost",
-    user: process.env.DB_USER || "root",
-    password: process.env.DB_PASSWORD || "Sus$2121",
-    database: process.env.DB_NAME || "attendance_db",
-    port: process.env.DB_PORT || 3306,
-  };
-}
 
-const db = mysql.createConnection(dbConfig);
+
+// MySQL connection configuration
+const db = mysql.createConnection({
+  host: process.env.MYSQLHOST || "localhost",
+  user: process.env.MYSQLUSER || "root",
+  password: process.env.MYSQLPASSWORD || "Sus$2121",
+  database: process.env.MYSQLDATABASE || "attendance_db",
+  port: process.env.MYSQLPORT || 3306,
+});
 
 db.connect((err) => {
   if (err) {
-    console.error("❌ Error connecting to MySQL:", err);
+    console.error("❌ Database Connection Error:", err);
     console.error("Connection Details:", {
-      host: process.env.DB_HOST || "localhost",
-      user: process.env.DB_USER || "root",
-      database: process.env.DB_NAME || "attendance_db",
-      port: process.env.DB_PORT || 3306,
+      host: process.env.MYSQLHOST || "localhost",
+      user: process.env.MYSQLUSER || "root",
+      database: process.env.MYSQLDATABASE || "attendance_db",
+      port: process.env.MYSQLPORT || 3306,
     });
     return;
   }
-  console.log("✅ Connected to MySQL database");
+  console.log("✅ Connected to Railway MySQL!");
 });
+
 
 // Secret key for JWT (keep this secure in production)
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
