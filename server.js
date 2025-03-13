@@ -20,18 +20,24 @@ app.use(bodyParser.json());
 
 
 
-// MySQL connection configuration using Railway variables
+// MySQL connection configuration
 const db = mysql.createConnection({
-  host: process.env.MYSQLHOST,       // Use Railway MySQL host
-  user: process.env.MYSQLUSER,       // Use Railway MySQL user
-  password: process.env.MYSQLPASSWORD, // Use Railway MySQL password
-  database: process.env.MYSQLDATABASE, // Use Railway MySQL database
-  port: process.env.MYSQLPORT || 3306, // Default to 3306 if not set
+  host: process.env.MYSQLHOST || "localhost",
+  user: process.env.MYSQLUSER || "root",
+  password: process.env.MYSQLPASSWORD || "Sus$2121",
+  database: process.env.MYSQLDATABASE || "attendance_db",
+  port: process.env.MYSQLPORT || 3306,
 });
 
 db.connect((err) => {
   if (err) {
     console.error("❌ Database Connection Error:", err);
+    console.error("Connection Details:", {
+      host: process.env.MYSQLHOST || "localhost",
+      user: process.env.MYSQLUSER || "root",
+      database: process.env.MYSQLDATABASE || "attendance_db",
+      port: process.env.MYSQLPORT || 3306,
+    });
     return;
   }
   console.log("✅ Connected to Railway MySQL!");
