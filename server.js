@@ -21,23 +21,55 @@ app.use(bodyParser.json());
 
 
 // MySQL connection configuration
+// const db = mysql.createConnection({
+//   host: process.env.MYSQLHOST || "localhost",
+//   user: process.env.MYSQLUSER || "root",
+//   password: process.env.MYSQLPASSWORD || "Sus$2121",
+//   database: process.env.MYSQLDATABASE || "attendance_db",
+//   port: process.env.MYSQLPORT || 3306,
+// });
+
+// db.connect((err) => {
+//   if (err) {
+//     console.error("❌ Database Connection Error:", err);
+//     console.error("Connection Details:", {
+//       host: process.env.MYSQLHOST || "localhost",
+//       user: process.env.MYSQLUSER || "root",
+//       database: process.env.MYSQLDATABASE || "attendance_db",
+//       port: process.env.MYSQLPORT || 3306,
+//     });
+//     return;
+//   }
+//   console.log("✅ Connected to Railway MySQL!");
+// });
+
+
+// Debug environment variables
+console.log("🚀 Environment Variables:");
+console.log("MYSQLHOST:", process.env.MYSQLHOST);
+console.log("MYSQLUSER:", process.env.MYSQLUSER);
+console.log("MYSQLPASSWORD:", process.env.MYSQLPASSWORD ? "****" : "NOT SET");
+console.log("MYSQLDATABASE:", process.env.MYSQLDATABASE);
+console.log("MYSQLPORT:", process.env.MYSQLPORT);
+
+// Ensure variables are loaded
+if (!process.env.MYSQLHOST || !process.env.MYSQLUSER || !process.env.MYSQLPASSWORD || !process.env.MYSQLDATABASE) {
+  console.error("❌ Missing required MySQL environment variables!");
+  process.exit(1); // Stop server if env variables are missing
+}
+
+// MySQL connection configuration using Railway variables
 const db = mysql.createConnection({
-  host: process.env.MYSQLHOST || "localhost",
-  user: process.env.MYSQLUSER || "root",
-  password: process.env.MYSQLPASSWORD || "Sus$2121",
-  database: process.env.MYSQLDATABASE || "attendance_db",
-  port: process.env.MYSQLPORT || 3306,
+  host: process.env.MYSQLHOST,       
+  user: process.env.MYSQLUSER,  // ✅ Replace 'root' with correct user from Railway  
+  password: process.env.MYSQLPASSWORD, 
+  database: process.env.MYSQLDATABASE, 
+  port: process.env.MYSQLPORT || 3306, 
 });
 
 db.connect((err) => {
   if (err) {
     console.error("❌ Database Connection Error:", err);
-    console.error("Connection Details:", {
-      host: process.env.MYSQLHOST || "localhost",
-      user: process.env.MYSQLUSER || "root",
-      database: process.env.MYSQLDATABASE || "attendance_db",
-      port: process.env.MYSQLPORT || 3306,
-    });
     return;
   }
   console.log("✅ Connected to Railway MySQL!");
