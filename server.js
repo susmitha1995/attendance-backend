@@ -3,7 +3,7 @@ const mysql = require("mysql2");
 const bodyParser = require("body-parser");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-require("dotenv").config();
+require("dotenv").config(); // Load environment variables from .env file
 const app = express();
 
 // Enable CORS
@@ -16,23 +16,32 @@ app.use((req, res, next) => {
 
 app.use(bodyParser.json());
 
-// MySQL connection using environment variables
-const db = mysql.createConnection({
-  host: process.env.DB_HOST || "localhost", // Use environment variable or fallback to localhost
-  user: process.env.DB_USER || "root", // Use environment variable or fallback to root
-  password: process.env.DB_PASSWORD || "Sus$2121", // Use environment variable or fallback
-  database: process.env.DB_NAME || "attendance_db", // Use environment variable or fallback
-  port: process.env.DB_PORT || 3306, // Use environment variable or fallback to default MySQL port
-});
+// MySQL connection configuration
+let dbConfig;
+if (process.env.MYSQL_URL) {
+  // Use MYSQL_URL if provided (for Railway)
+  dbConfig = process.env.MYSQL_URL;
+} else {
+  // Use individual environment variables (for local development)
+  dbConfig = {
+    host: process.env.DB_HOST || "localhost",
+    user: process.env.DB_USER || "root",
+    password: process.env.DB_PASSWORD || "Sus$2121",
+    database: process.env.DB_NAME || "attendance_db",
+    port: process.env.DB_PORT || 3306,
+  };
+}
+
+const db = mysql.createConnection(dbConfig);
 
 db.connect((err) => {
   if (err) {
     console.error("❌ Error connecting to MySQL:", err);
     console.error("Connection Details:", {
-      host: process.env.DB_HOST,
-      user: process.env.DB_USER,
-      database: process.env.DB_NAME,
-      port: process.env.DB_PORT,
+      host: process.env.DB_HOST || "localhost",
+      user: process.env.DB_USER || "root",
+      database: process.env.DB_NAME || "attendance_db",
+      port: process.env.DB_PORT || 3306,
     });
     return;
   }
