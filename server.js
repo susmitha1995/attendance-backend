@@ -10,10 +10,14 @@ const app = express();
 
 // Enable CORS
 app.use(cors({
-  origin: 'https://myattendancefrontend.netlify.app/login.html', // Replace with your Netlify frontend URL
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  origin: 'https://myattendancefrontend.netlify.app', // Allow requests from your Netlify frontend
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow these HTTP methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allow these headers
+  credentials: true, // Allow credentials (e.g., cookies, authorization headers)
 }));
+
+// Handle preflight requests for all routes
+app.options('*', cors());
 
 app.use(bodyParser.json());
 
