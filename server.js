@@ -3,78 +3,43 @@ const mysql = require("mysql2");
 const bodyParser = require("body-parser");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const cors = require("cors"); // Add CORS package
 require("dotenv").config(); // Load environment variables from .env file
+
 const app = express();
 
 // Enable CORS
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*"); // Allow requests from any origin (update this in production)
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS"); // Allow these methods
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization"); // Allow these headers
-  next();
-});
+app.use(cors({
+  origin: 'https://myattendancefrontend.netlify.app/login.html', // Replace with your Netlify frontend URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 
 app.use(bodyParser.json());
 
-
-
-
-
-//MySQL connection configuration
+// MySQL connection configuration
 const db = mysql.createConnection({
-  host: process.env.MYSQLHOST || "localhost",
-  user: process.env.MYSQLUSER || "root",
-  password: process.env.MYSQLPASSWORD || "Sus$2121",
-  database: process.env.MYSQLDATABASE || "attendance_db",
+  host: process.env.MYSQLHOST,
+  user: process.env.MYSQLUSER,
+  password: process.env.MYSQLPASSWORD,
+  database: process.env.MYSQLDATABASE,
   port: process.env.MYSQLPORT || 3306,
 });
 
-db.connect((err) => {
-  if (err) {
-    console.error("❌ Database Connection Error:", err);
-    console.error("Connection Details:", {
-      host: process.env.MYSQLHOST || "localhost",
-      user: process.env.MYSQLUSER || "root",
-      database: process.env.MYSQLDATABASE || "attendance_db",
-      port: process.env.MYSQLPORT || 3306,
-    });
-    return;
-  }
-  console.log("✅ Connected to Railway MySQL!");
-});
+// Database connection with retry mechanism
+const connectToDatabase = () => {
+  db.connect((err) => {
+    if (err) {
+      console.error("❌ Database Connection Error:", err);
+      console.error("Retrying in 5 seconds...");
+      setTimeout(connectToDatabase, 5000); // Retry after 5 seconds
+      return;
+    }
+    console.log("✅ Connected to Railway MySQL!");
+  });
+};
 
-
-// // Debug environment variables
-// console.log("🚀 Environment Variables:");
-// console.log("MYSQLHOST:", process.env.MYSQLHOST);
-// console.log("MYSQLUSER:", process.env.MYSQLUSER);
-// console.log("MYSQLPASSWORD:", process.env.MYSQLPASSWORD ? "****" : "NOT SET");
-// console.log("MYSQLDATABASE:", process.env.MYSQLDATABASE);
-// console.log("MYSQLPORT:", process.env.MYSQLPORT);
-
-// // Ensure variables are loaded
-// if (!process.env.MYSQLHOST || !process.env.MYSQLUSER || !process.env.MYSQLPASSWORD || !process.env.MYSQLDATABASE) {
-//   console.error("❌ Missing required MySQL environment variables!");
-//   process.exit(1); // Stop server if env variables are missing
-// }
-
-// // MySQL connection configuration using Railway variables
-// const db = mysql.createConnection({
-//   host: process.env.MYSQLHOST,       
-//   user: process.env.MYSQLUSER,  // ✅ Replace 'root' with correct user from Railway  
-//   password: process.env.MYSQLPASSWORD, 
-//   database: process.env.MYSQLDATABASE, 
-//   port: process.env.MYSQLPORT || 3306, 
-// });
-
-// db.connect((err) => {
-//   if (err) {
-//     console.error("❌ Database Connection Error:", err);
-//     return;
-//   }
-//   console.log("✅ Connected to Railway MySQL!");
-// });
-
+connectToDatabase(); // Initial connection attempt
 
 // Secret key for JWT (keep this secure in production)
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
